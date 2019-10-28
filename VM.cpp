@@ -8,17 +8,73 @@
 #include <map> //map table
 #include <cctype> //testing characters
 
-#include "assembler/assembler.h" //may want to use structure file
+// #include "assembler/assembler.h" //may want to use structure file
 
 // Static items
 using namespace std;
 #define MEM_SIZE 250
 string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8"};
 #define NUM_OF_REG 9
-#define NUM_OPPS 21
+#define NUM_OPPS 25
 bool debug_on = true;
 
+class assembler_mem {
+    public:
+    int     location = -1;
+    bool    byte_transfer = false;
+    bool    is_instruction = false;
+    int     opp_code;
+    int     arg1;
+    string  arg1_string;
+    bool    arg1_is_label;
+    int     arg2;
+    string  arg2_string;
+    bool    arg2_is_label;
+};
 
+class oppcode_dictionary {
+    public:
+    map<string, int> opp_name;
+    string  opp_name_string[NUM_OPPS];
+    char    op1_type[NUM_OPPS];
+    char    op2_type[NUM_OPPS];
+    bool    dual_opp[NUM_OPPS];
+    int     dual_opp_int[NUM_OPPS];
+    bool    register_convert[NUM_OPPS];
+    void add(string name_in, int code_num, char op1_type_in,char op2_type_in,bool dual_opp_in){
+        opp_name[name_in] = code_num;
+        opp_name_string[code_num - 1] = name_in;
+        op1_type[code_num - 1] = op1_type_in;
+        op2_type[code_num - 1] = op2_type_in;
+        dual_opp[code_num - 1] = dual_opp_in;
+    }
+
+    int get_code(string opp_name_in){
+        return opp_name[opp_name_in];
+    }
+    string get_opp_name(int code_num){
+        if(code_num > 0 & code_num < 22) {
+            return opp_name_string[code_num - 1];
+        }
+        else {
+            return "Not valid OPP Code.";
+            
+        }
+    }
+    void add_dual_opp(int code_num_in, int convert_code, bool convert_on_registers){
+        dual_opp_int[code_num_in - 1] = convert_code;
+        register_convert[code_num_in - 1] = convert_on_registers;
+    }
+    bool is_dual_opp(int code_num){
+        return dual_opp[code_num - 1];
+    }
+    void convert_dual_opp(int &code_num_in, bool convert_on_registers){
+        if (register_convert[code_num_in - 1] == convert_on_registers){
+            if(debug_on) cout << "I converted " << code_num_in << " " << dual_opp_int[code_num_in - 1] << endl; //debug
+            code_num_in = dual_opp_int[code_num_in - 1];
+        }
+    }
+};
 
 // Assembler items
 assembler_mem current_assebler_memory[MEM_SIZE];
@@ -65,27 +121,41 @@ class my_assembly_VM {
             VM_REGISTERS[8]+=12;
             switch (current_operation){
                 case 1: { //JMP
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    VM_REGISTERS[8] = current_arg2; //base memory address and offset (label)
                 }
                 break;
                 case 2: { //JMR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    VM_REGISTERS[8] = VM_REGISTERS[current_arg1];
                 }
                 break;
                 case 3: { //BNZ
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if (VM_REGISTERS[current_arg1] != 0){
+                        VM_REGISTERS[8] = current_arg2;
+                    }
                 }
                 break;
                 case 4: { //BGT
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if (VM_REGISTERS[current_arg1] > 0){
+                        VM_REGISTERS[8] = current_arg2;
+                    }
                 }
                 break;
                 case 5: { //BLT
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if (VM_REGISTERS[current_arg1] < 0){
+                        VM_REGISTERS[8] = current_arg2;
+                    }
                 }
                 break;
                 case 6: { //BRZ
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if (VM_REGISTERS[current_arg1] == 0){
+                        VM_REGISTERS[8] = current_arg2;
+                    }
                 }
                 break;
                 case 7: { //MOV
@@ -94,11 +164,13 @@ class my_assembly_VM {
                 }
                 break;
                 case 8: { //LDA
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    VM_REGISTERS[current_arg1] = current_arg2;
                 }
                 break;
                 case 9: { //STR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    *(int*)(VM_MEMORY+current_arg2) = VM_REGISTERS[current_arg1];
                 }
                 break;
                 case 10: { //LDR
@@ -107,7 +179,9 @@ class my_assembly_VM {
                 }
                 break;
                 case 11: { //STB
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    //cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    (VM_MEMORY[current_arg2]) = 0;
+                    (VM_MEMORY[current_arg2]) = *(char*)(VM_REGISTERS+current_arg1);
                 }
                 break;
                 case 12: { //LDB
@@ -124,7 +198,8 @@ class my_assembly_VM {
                 }
                 break;
                 case 14: { //ADI
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    VM_REGISTERS[current_arg1] += current_arg2;
                 }
                 break;
                 case 15: { //SUB
@@ -143,15 +218,28 @@ class my_assembly_VM {
                 }
                 break;
                 case 18: { //AND
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    int temp_int = VM_REGISTERS[current_arg1] && VM_REGISTERS[current_arg2];
+                    VM_REGISTERS[current_arg1] = temp_int;
                 }
                 break;
                 case 19: { //OR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    int temp_int = VM_REGISTERS[current_arg1] || VM_REGISTERS[current_arg2];
+                    VM_REGISTERS[current_arg1] = temp_int;
                 }
                 break;
                 case 20: { //CMP
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if(VM_REGISTERS[current_arg1] == VM_REGISTERS[current_arg2]){
+                        VM_REGISTERS[current_arg1] = 0;
+                    }
+                    else if(VM_REGISTERS[current_arg1] > VM_REGISTERS[current_arg2]){
+                        VM_REGISTERS[current_arg1] = 1;
+                    }
+                    else {
+                        VM_REGISTERS[current_arg1] = -1;
+                    }
                 }
                 break;
                 case 21: { //TRP
@@ -174,10 +262,31 @@ class my_assembly_VM {
                         break;
                         case 4: run = false;
                         break;
-                        default: run = false;
+                        default: 
+                        if(debug_on) cout << "Debud: I ran" << endl;
+                        else run = false;
                         break;
                     }
                     
+                }
+                break;
+                case 22: { //STR
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                }
+                break;
+                case 23: { //LDR
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    VM_REGISTERS[current_arg1] = *(int*)(VM_MEMORY+(VM_REGISTERS[current_arg2]));
+                }
+                break;
+                case 24: { //STB
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                }
+                break;
+                case 25: { //LDB
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    VM_REGISTERS[current_arg1] = 0;
+                    *(char*)(VM_REGISTERS+current_arg1) = (VM_MEMORY[(VM_REGISTERS[current_arg2])]);
                 }
                 break;
                 default: {
@@ -194,27 +303,32 @@ class my_assembly_VM {
 
 void initialize(){
     // initalize opps
-    OPPS_DICTIONARY.add("JMP",1,'L',' ');
-    OPPS_DICTIONARY.add("JMR",2,'S',' ');
-    OPPS_DICTIONARY.add("BNZ",3,'S','L');
-    OPPS_DICTIONARY.add("BGT",4,'S','L');
-    OPPS_DICTIONARY.add("BLT",5,'S','L');
-    OPPS_DICTIONARY.add("BRZ",6,'S','L');
-    OPPS_DICTIONARY.add("MOV",7,'D','S');
-    OPPS_DICTIONARY.add("LDA",8,'D','L');
-    OPPS_DICTIONARY.add("STR",9,'S','L');
-    OPPS_DICTIONARY.add("LDR",10,'D','L');
-    OPPS_DICTIONARY.add("STB",11,'S','L');
-    OPPS_DICTIONARY.add("LDB",12,'D','L');
-    OPPS_DICTIONARY.add("ADD",13,'D','S');
-    OPPS_DICTIONARY.add("ADI",14,'D','I');
-    OPPS_DICTIONARY.add("SUB",15,'D','S');
-    OPPS_DICTIONARY.add("MUL",16,'D','S');
-    OPPS_DICTIONARY.add("DIV",17,'D','S');
-    OPPS_DICTIONARY.add("AND",18,'D','S');
-    OPPS_DICTIONARY.add("OR",19,'D','S');
-    OPPS_DICTIONARY.add("CMP",20,'D','S');
-    OPPS_DICTIONARY.add("TRP",21,'I',' ');
+    OPPS_DICTIONARY.add("JMP",1,'L',' ',false);
+    OPPS_DICTIONARY.add("JMR",2,'S',' ',false);
+    OPPS_DICTIONARY.add("BNZ",3,'S','L',false);
+    OPPS_DICTIONARY.add("BGT",4,'S','L',false);
+    OPPS_DICTIONARY.add("BLT",5,'S','L',false);
+    OPPS_DICTIONARY.add("BRZ",6,'S','L',false);
+    OPPS_DICTIONARY.add("MOV",7,'D','S',false);
+    OPPS_DICTIONARY.add("LDA",8,'D','L',false);
+    OPPS_DICTIONARY.add("STR",9,'S','L',true);
+    OPPS_DICTIONARY.add("LDR",10,'D','L',true);
+    OPPS_DICTIONARY.add("STB",11,'S','L',true);
+    OPPS_DICTIONARY.add("LDB",12,'D','L',true);
+    OPPS_DICTIONARY.add("ADD",13,'D','S',false);
+    OPPS_DICTIONARY.add("ADI",14,'D','I',false);
+    OPPS_DICTIONARY.add("SUB",15,'D','S',false);
+    OPPS_DICTIONARY.add("MUL",16,'D','S',false);
+    OPPS_DICTIONARY.add("DIV",17,'D','S',false);
+    OPPS_DICTIONARY.add("AND",18,'D','S',false);
+    OPPS_DICTIONARY.add("OR",19,'D','S',false);
+    OPPS_DICTIONARY.add("CMP",20,'D','S',false);
+    OPPS_DICTIONARY.add("TRP",21,'I',' ',false);
+    // list dual defined opp codes
+    OPPS_DICTIONARY.add_dual_opp(9,22,true); // STR
+    OPPS_DICTIONARY.add_dual_opp(10,23,true); // LDR
+    OPPS_DICTIONARY.add_dual_opp(11,24,true); // STB
+    OPPS_DICTIONARY.add_dual_opp(12,25,true); // LDB
 }
 
 // Label map object
@@ -271,8 +385,8 @@ int is_label(string key_in, int location){
 }
 void my_assembler(string instruction_in, int &location,int &count){
     smatch m;
-    regex gen_opp_serach ("(\\w+)*? ?([A-Z]{2,3}) (R[0-8])? *(R[0-8]|\\w+)");   // matches words beginning by "sub"
-    regex label_search ("(\\w+)? *.(INT|BYT) *[']?(\\w+)[']?");
+    regex gen_opp_serach ("(\\w+)*? ?([A-Z]{2,3}) (R[0-8])? *(R[0-8]|[-]?\\w+)");   // matches words beginning by "sub"
+    regex label_search ("(\\w+)? *.(INT|BYT) *[']?([-]?\\w+)[']?");
 
     if(std::regex_search(instruction_in,m,label_search)){
         // for (auto x:m) std::cout << x << endl;
@@ -320,6 +434,7 @@ void my_assembler(string instruction_in, int &location,int &count){
     // General instruction Regex search
     else if(std::regex_search(instruction_in,m,gen_opp_serach)){
         // for (auto x:m) std::cout << x << endl;
+        bool dual_opp_code = false; // variable to hold if the opp code is a dual defined opp code
         if (m[0] != ""){
             if(debug_on) cout << "MATCH (";
             if(debug_on) cout << m[0] << ")"; //full matched string
@@ -337,7 +452,9 @@ void my_assembler(string instruction_in, int &location,int &count){
         if (m[2] != ""){
             if(debug_on) cout << " OP CODE: (";
             if(debug_on) cout << m[2] << ")";   //oppcode
-            current_assebler_memory[location].opp_code = OPPS_DICTIONARY.get_code(m[2]);
+            current_assebler_memory[location].opp_code = OPPS_DICTIONARY.get_code(m[2]); //convert the string to opp code
+            dual_opp_code = OPPS_DICTIONARY.is_dual_opp(current_assebler_memory[location].opp_code); // sets flag for dual code
+            // cout << m[2] << " " << OPPS_DICTIONARY.is_dual_opp(current_assebler_memory[location].opp_code) << endl; // Debug the dual opp code function
         }
         if (m[3] != ""){
             if(debug_on) cout << " Register: (";
@@ -355,6 +472,9 @@ void my_assembler(string instruction_in, int &location,int &count){
             }
             if(debug_on) cout << m[4] << ")";   //register/label
         }
+        if (dual_opp_code) { // Convert opp-code if the label is a register
+            OPPS_DICTIONARY.convert_dual_opp(current_assebler_memory[location].opp_code, !current_assebler_memory[location].arg2_is_label);
+        }
         if(debug_on) cout << endl;
         count+=12;
         // std::cout << std::endl;
@@ -370,8 +490,8 @@ void my_assembler_transfer_to_mem(my_assembly_VM &VM_IN){
                 *(int*)(VM_IN.VM_MEMORY+offset_temp+0) = current_assebler_memory[i].opp_code;
                 *(int*)(VM_IN.VM_MEMORY+offset_temp+4) = current_assebler_memory[i].arg1;
                 *(int*)(VM_IN.VM_MEMORY+offset_temp+8) = current_assebler_memory[i].arg2;
-                if(debug_on) cout << "(" << offset_temp << ") " << current_assebler_memory[i].opp_code << " | " << current_assebler_memory[i].arg1 << " | " << current_assebler_memory[i].arg2 << endl;
-                if(debug_on) cout << "(" << offset_temp << ") " << *((int*)(VM_IN.VM_MEMORY+offset_temp)+0) << " | " << *((int*)(VM_IN.VM_MEMORY+offset_temp)+4) << " | " << *((int*)(VM_IN.VM_MEMORY+offset_temp)+8)  << endl << endl;
+                if(debug_on) cout << "ASSEMBLER(" << offset_temp << ") " << current_assebler_memory[i].opp_code << " | " << current_assebler_memory[i].arg1 << " | " << current_assebler_memory[i].arg2 << endl;
+                if(debug_on) cout << "MEMORY   (" << offset_temp << ") " << *(int*)(VM_IN.VM_MEMORY+offset_temp+0) << " | " << *(int*)(VM_IN.VM_MEMORY+offset_temp+4) << " | " << *(int*)(VM_IN.VM_MEMORY+offset_temp+8)  << endl << endl;
             }
             else {
                 if(current_assebler_memory[i].byte_transfer){
@@ -399,6 +519,11 @@ int main(int argc, char** argv)
     if(argc < 1){
         if(debug_on) cout << "A file argument was not passed\n";
         return 0;
+    }
+    if(argc >= 3){
+        if (argv[2][1] == 'd'){
+            debug_on = true;
+        }
     }
     ifstream my_file_in(argv[1]);
     if(!my_file_in.is_open()){ //check if we could open the file
