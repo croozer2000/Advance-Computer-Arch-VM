@@ -10,7 +10,7 @@
                 ,"-o"
                 ,"vm"
                 ,"project_1.cpp"
-                // ,"assembler/assembler.cpp"
+                ,"assembler/assembler.cpp"
             ],
             "group": {
                 "kind": "build",

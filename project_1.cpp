@@ -8,7 +8,7 @@
 #include <map> //map table
 #include <cctype> //testing characters
 
-// #include "assembler/assembler.h" //may want to use structure file
+#include "assembler/assembler.h" //may want to use structure file
 
 // Static items
 using namespace std;
@@ -18,61 +18,26 @@ string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8"};
 #define NUM_OPPS 21
 bool debug_on = true;
 
-class assembler_mem {
-    public:
-    bool    byte_transfer = true;
-    int     opp_code;
-    int     arg1;
-    string  arg1_string;
-    bool    arg1_is_label;
-    int     arg2;
-    string  arg2_string;
-    bool    arg2_is_label;
-};
 
-class oppcode_dictionary {
-    public:
-    map<string, int> opp_name;
-    string  opp_name_string[NUM_OPPS];
-    char    op1_type[NUM_OPPS];
-    char    op2_type[NUM_OPPS];
-    void add(string name_in, int code_num, char op1_type_in,char op2_type_in){
-        opp_name[name_in] = code_num;
-        opp_name_string[code_num - 1] = name_in;
-        op1_type[code_num - 1] = op1_type_in;
-        op2_type[code_num - 1] = op2_type_in;
-    }
-    int get_code(string opp_name_in){
-        return opp_name[opp_name_in];
-    }
-    string get_opp_name(int code_num){
-        if(code_num > 0 & code_num < 22) {
-            return opp_name_string[code_num - 1];
-        }
-        else {
-            return "Not valid OPP Code.";
-            
-        }
-
-    }
-};
 
 // Assembler items
 assembler_mem current_assebler_memory[MEM_SIZE];
 oppcode_dictionary OPPS_DICTIONARY;
+bool found_first_opp = false;
+int first_opp_location;
 
 class my_assembly_VM {
     public:
     // VM Items
     int     VM_REGISTERS[9];
-    int     VM_MEMORY[MEM_SIZE];
+    char     VM_MEMORY[MEM_SIZE*12];
 
     
     void initialize(){
         for(int i = 0; i < NUM_OF_REG; i++){
             VM_REGISTERS[i] = 0;
         }
-        for(int i = 0; i < MEM_SIZE; i++){
+        for(int i = 0; i < MEM_SIZE*12; i++){
             VM_MEMORY[i] = 0;
         }
     }
@@ -85,105 +50,112 @@ class my_assembly_VM {
     //     return temp_int;
     // }
 
-    void run(){
+    void run(int program_start_location){
         bool run = true;
-        unsigned char current_operation[4]; //NOTE USING UNSIGNED BYTES
+        int current_operation;
+        int current_arg1;
+        int current_arg2;
+        VM_REGISTERS[8] = program_start_location;
         while (run){
 
-            *(int*)current_operation = VM_MEMORY[(VM_REGISTERS[8])];
-            VM_REGISTERS[8]++;
-            switch (current_operation[0]){
+            current_operation = *(int*)(VM_MEMORY+(VM_REGISTERS[8]));
+            current_arg1 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+4));
+            current_arg2 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+8));
+            
+            VM_REGISTERS[8]+=12;
+            switch (current_operation){
                 case 1: { //JMP
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 2: { //JMR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 3: { //BNZ
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 4: { //BGT
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 5: { //BLT
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 6: { //BRZ
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 7: { //MOV
                     // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
-                    VM_REGISTERS[current_operation[1]] = VM_REGISTERS[current_operation[2]];
+                    VM_REGISTERS[current_arg1] = VM_REGISTERS[current_arg2];
                 }
                 break;
                 case 8: { //LDA
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 9: { //STR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 10: { //LDR
                     // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
-                    VM_REGISTERS[current_operation[1]] = VM_MEMORY[current_operation[2]];
+                    VM_REGISTERS[current_arg1] = *(int*)(VM_MEMORY+current_arg2);
                 }
                 break;
                 case 11: { //STB
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 12: { //LDB
                     // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
-                    *(char*)(VM_REGISTERS+current_operation[1]) = *(char*)(VM_MEMORY+current_operation[2]);
+                    VM_REGISTERS[current_arg1] = 0;
+                    *(char*)(VM_REGISTERS+current_arg1) = (VM_MEMORY[current_arg2]);
                 }
                 break;
                 case 13: { //ADD
                     // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
                     // if(debug_on) cout << "regD: " << VM_REGISTERS[current_operation[1]] << "regS: " << VM_REGISTERS[current_operation[2]] << endl;
-                    int temp_int = VM_REGISTERS[current_operation[1]] + VM_REGISTERS[current_operation[2]];
-                    VM_REGISTERS[current_operation[1]] = temp_int;
+                    int temp_int = VM_REGISTERS[current_arg1] + VM_REGISTERS[current_arg2];
+                    VM_REGISTERS[current_arg1] = temp_int;
                 }
                 break;
                 case 14: { //ADI
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 15: { //SUB
-                    int temp_int = VM_REGISTERS[current_operation[1]] - VM_REGISTERS[current_operation[2]];
-                    VM_REGISTERS[current_operation[1]] = temp_int;
+                    int temp_int = VM_REGISTERS[current_arg1] - VM_REGISTERS[current_arg2];
+                    VM_REGISTERS[current_arg1] = temp_int;
                 }
                 break;
                 case 16: { //MUL
-                    int temp_int = VM_REGISTERS[current_operation[1]] * VM_REGISTERS[current_operation[2]];
-                    VM_REGISTERS[current_operation[1]] = temp_int;
+                    int temp_int = VM_REGISTERS[current_arg1] * VM_REGISTERS[current_arg2];
+                    VM_REGISTERS[current_arg1] = temp_int;
                 }
                 break;
                 case 17: { //DIV
-                    int temp_int = VM_REGISTERS[current_operation[1]] / VM_REGISTERS[current_operation[2]];
-                    VM_REGISTERS[current_operation[1]] = temp_int;
+                    int temp_int = VM_REGISTERS[current_arg1] / VM_REGISTERS[current_arg2];
+                    VM_REGISTERS[current_arg1] = temp_int;
                 }
                 break;
                 case 18: { //AND
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 19: { //OR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 20: { //CMP
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 21: { //TRP
-                    switch (current_operation[2]) {
+                    switch (current_arg2) {
                         case 0: run = false;
                         break;
                         case 1: {
@@ -209,7 +181,7 @@ class my_assembly_VM {
                 }
                 break;
                 default: {
-                    cout << "ERROR not an oppcode at memory location: (" << VM_REGISTERS[8]-1 << ") OPP Code dump: " << + current_operation[0] <<endl;
+                    cout << "ERROR not an oppcode at memory location: (" << VM_REGISTERS[8]-12 << ") OPP Code dump: " << + current_operation <<endl;
                 }
                 break;
             }
@@ -253,7 +225,7 @@ int replace_label(string label_in) {
         return -1;
     }
     else {
-        return labels[label_in]; 
+        return labels[label_in];
     }
 }
 void my_assembler_label_replace(){
@@ -297,11 +269,7 @@ int is_label(string key_in, int location){
     }
     return location_return;
 }
-// void convert_to_instant(int &OPP_IN) {
-//     //function converts a direct addressing to an indirect addressing
-//     //This runs if the given label is acctually a label
-// }
-void my_assembler(string instruction_in, int location){
+void my_assembler(string instruction_in, int &location,int &count){
     smatch m;
     regex gen_opp_serach ("(\\w+)*? ?([A-Z]{2,3}) (R[0-8])? *(R[0-8]|\\w+)");   // matches words beginning by "sub"
     regex label_search ("(\\w+)? *.(INT|BYT) *[']?(\\w+)[']?");
@@ -311,11 +279,12 @@ void my_assembler(string instruction_in, int location){
         if (m[0] != ""){
             if(debug_on) cout << "Found MATCH: (";
             if(debug_on) cout << m[0] << ")"; //full matched string
+            current_assebler_memory[location].location = count;
         }
         if (m[1] != ""){
             if(debug_on) cout << " label: (";
             if(debug_on) cout << m[1] << ")"; //label
-            add_label(m[1],location);
+            add_label(m[1],count);
         }
         if (m[2] != ""){
             if(debug_on) cout << " Label Identifier: (";
@@ -325,10 +294,11 @@ void my_assembler(string instruction_in, int location){
                 if(debug_on) cout << m[3] << ")";   //register
                 if(m[2] == "INT"){
                     current_assebler_memory[location].opp_code = stoi(m[3]);
-                    current_assebler_memory[location].byte_transfer = false;
+                    count+=4;
                 }
                 else if(m[2] == "BYT"){
                     current_assebler_memory[location].opp_code = OPPS_DICTIONARY.get_code(m[3]);
+                    current_assebler_memory[location].byte_transfer = true;
                     string temp_string = m[3];
                     if(isdigit(temp_string[0])){
                         int temp_int = stoi(temp_string);
@@ -339,6 +309,7 @@ void my_assembler(string instruction_in, int location){
                         char temp_char = temp_string[0];
                         current_assebler_memory[location].opp_code = temp_char;
                     }
+                    count++;
                 }
                 
             }
@@ -352,11 +323,16 @@ void my_assembler(string instruction_in, int location){
         if (m[0] != ""){
             if(debug_on) cout << "MATCH (";
             if(debug_on) cout << m[0] << ")"; //full matched string
+            current_assebler_memory[location].location = count;
+            if(!found_first_opp) {
+                first_opp_location = count;
+                found_first_opp = true;
+            }
         }
         if (m[1] != ""){
             if(debug_on) cout << " label: (";
             if(debug_on) cout << m[1] << ")"; //label
-            add_label(m[1],location);
+            add_label(m[1],count);
         }
         if (m[2] != ""){
             if(debug_on) cout << " OP CODE: (";
@@ -376,27 +352,38 @@ void my_assembler(string instruction_in, int location){
             }
             else {
                 current_assebler_memory[location].arg2 = is_label(m[4],location);
-                // convert_to_instant(current_assebler_memory[location].opp_code) //USE IN PROJECT 2
             }
             if(debug_on) cout << m[4] << ")";   //register/label
         }
         if(debug_on) cout << endl;
+        count+=12;
         // std::cout << std::endl;
         // s = m.suffix().str();
     }
 }
 void my_assembler_transfer_to_mem(my_assembly_VM &VM_IN){
+    int offset_temp;
     for(int i = 0; i < MEM_SIZE; i++){
-        if(current_assebler_memory[i].byte_transfer){
-            *((char*)(VM_IN.VM_MEMORY+i)+0) = current_assebler_memory[i].opp_code;
-            *((char*)(VM_IN.VM_MEMORY+i)+1) = current_assebler_memory[i].arg1;
-            *((char*)(VM_IN.VM_MEMORY+i)+2) = current_assebler_memory[i].arg2;
-            if(debug_on) cout << current_assebler_memory[i].opp_code << " | " << current_assebler_memory[i].arg1 << " | " << current_assebler_memory[i].arg2 << endl;
-            //NOTE DEBUG USING UNSIGNED BYTES
-            if(debug_on) cout << +*((unsigned char*)(VM_IN.VM_MEMORY+i)+0) << " | " << +*((unsigned char*)(VM_IN.VM_MEMORY+i)+1) << " | " << +*((unsigned char*)(VM_IN.VM_MEMORY+i)+2) << " | " << +*((char*)(VM_IN.VM_MEMORY+i)+3) << " | int (" << VM_IN.VM_MEMORY[i] << ")" << endl << endl;
-        }
-        else {
-            VM_IN.VM_MEMORY[i] = current_assebler_memory[i].opp_code;
+        offset_temp = current_assebler_memory[i].location;
+        if(offset_temp != -1){
+            if(!current_assebler_memory[i].is_instruction){
+                *(int*)(VM_IN.VM_MEMORY+offset_temp+0) = current_assebler_memory[i].opp_code;
+                *(int*)(VM_IN.VM_MEMORY+offset_temp+4) = current_assebler_memory[i].arg1;
+                *(int*)(VM_IN.VM_MEMORY+offset_temp+8) = current_assebler_memory[i].arg2;
+                if(debug_on) cout << "(" << offset_temp << ") " << current_assebler_memory[i].opp_code << " | " << current_assebler_memory[i].arg1 << " | " << current_assebler_memory[i].arg2 << endl;
+                if(debug_on) cout << "(" << offset_temp << ") " << *((int*)(VM_IN.VM_MEMORY+offset_temp)+0) << " | " << *((int*)(VM_IN.VM_MEMORY+offset_temp)+4) << " | " << *((int*)(VM_IN.VM_MEMORY+offset_temp)+8)  << endl << endl;
+            }
+            else {
+                if(current_assebler_memory[i].byte_transfer){
+                    VM_IN.VM_MEMORY[offset_temp] = current_assebler_memory[i].opp_code;
+                    if(debug_on) cout << VM_IN.VM_MEMORY[offset_temp] << endl;
+                }
+                else{
+                    *((int*)(VM_IN.VM_MEMORY+offset_temp)+0) = current_assebler_memory[i].opp_code;
+                    if(debug_on) cout << *((int*)(VM_IN.VM_MEMORY+offset_temp)+0) << endl;
+                }
+                
+            }
         }
     }
 }
@@ -433,18 +420,19 @@ int main(int argc, char** argv)
         int location_counter = 0;
         if(debug_on) cout << "printing with strings\n"; //debug line
         int count = 0;
+        int location = 0;
         while (getline(my_file_in,temp_string)){ //grab line
             stringstream temp_stream(temp_string);
             string token;
             vector<string> vec_tokens; //temp vector to hold tokens
             if(debug_on) cout << "This is the count:     ----" << count << "----------------" << endl;
-            if(count > MEM_SIZE) cout << "DEBUG: OUT OF MEMORY. ASM file larger than VM memory." << endl;
-            my_assembler(temp_string,count); //assembler pass one
-            count++;
+            if(location > MEM_SIZE) cout << "DEBUG: OUT OF MEMORY. ASM file larger than VM memory." << endl;
+            my_assembler(temp_string, location, count); //assembler pass one
+            location++;
         }
         my_assembler_label_replace(); //replace all labels with addresses
         my_assembler_transfer_to_mem(VM1); //transfer assembly to VM memory
-        VM1.run();
+        VM1.run(first_opp_location);
     }
     else{
         if(debug_on) cout << "No Text file avalible!\n";

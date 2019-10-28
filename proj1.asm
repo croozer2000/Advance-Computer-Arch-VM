@@ -1,3 +1,32 @@
+nC .BYT 'C'
+nh .BYT 'h'
+nr .BYT 'r'
+ni .BYT 'i'
+ns .BYT 's'
+nt .BYT 't'
+na .BYT 'a'
+nn .BYT 'n'
+nG .BYT 'G'
+ne .BYT 'e'
+com .BYT 44
+spc .BYT 32
+ent .BYT 10
+A1 .INT 1
+A2 .INT 2
+A3 .INT 3
+A4 .INT 4
+A5 .INT 5
+A6 .INT 6
+B1 .INT 300
+B2 .INT 150
+B3 .INT 50
+B4 .INT 20
+B5 .INT 10
+B6 .INT 5
+C1 .INT 500
+C2 .INT 2
+C3 .INT 5
+C4 .INT 10
 LDB R3 nC //Displaying Name
 TRP 3
 LDB R3 nh
@@ -180,32 +209,3 @@ LDB R3 spc //Adding a space
 TRP 3
 TRP 3
 TRP 0
-nC .BYT 'C'
-nh .BYT 'h'
-nr .BYT 'r'
-ni .BYT 'i'
-ns .BYT 's'
-nt .BYT 't'
-na .BYT 'a'
-nn .BYT 'n'
-nG .BYT 'G'
-ne .BYT 'e'
-com .BYT 44
-spc .BYT 32
-ent .BYT 10
-A1 .INT 1
-A2 .INT 2
-A3 .INT 3
-A4 .INT 4
-A5 .INT 5
-A6 .INT 6
-B1 .INT 300
-B2 .INT 150
-B3 .INT 50
-B4 .INT 20
-B5 .INT 10
-B6 .INT 5
-C1 .INT 500
-C2 .INT 2
-C3 .INT 5
-C4 .INT 10
