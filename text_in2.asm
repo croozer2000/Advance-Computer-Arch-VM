@@ -1,0 +1,9 @@
+ADD R1 R2
+SUB R1 test
+drug ADD R1 R2
+TRP 3
+crap TRP 3
+test .INT 324
+ADI R1 100
+test2 .BYT 'A'
+TRP 0

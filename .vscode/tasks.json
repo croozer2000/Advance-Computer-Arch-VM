@@ -2,14 +2,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build project 0",
+            "label": "build project 1",
             "type": "shell",
             "command": "g++",
             "args": [
-                "-g",
-                "-o",
-                "project_0",
-                "project_0.cpp"
+                "-g"
+                ,"-o"
+                ,"vm"
+                ,"project_1.cpp"
+                // ,"assembler/assembler.cpp"
             ],
             "group": {
                 "kind": "build",
