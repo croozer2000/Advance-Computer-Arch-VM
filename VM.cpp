@@ -12,9 +12,9 @@
 
 // Static items
 using namespace std;
-#define MEM_SIZE 250
-string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8"};
-#define NUM_OF_REG 9
+#define MEM_SIZE 50
+string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12"};
+#define NUM_OF_REG 13
 #define NUM_OPPS 25
 bool debug_on = true;
 
@@ -36,6 +36,7 @@ class oppcode_dictionary {
     public:
     map<string, int> opp_name;
     string  opp_name_string[NUM_OPPS];
+    string  dual_opp_name_string[NUM_OPPS];
     char    op1_type[NUM_OPPS];
     char    op2_type[NUM_OPPS];
     bool    dual_opp[NUM_OPPS];
@@ -56,14 +57,18 @@ class oppcode_dictionary {
         if(code_num > 0 & code_num < 22) {
             return opp_name_string[code_num - 1];
         }
+        else if(code_num >= 22 & code_num < 25){
+            return dual_opp_name_string[code_num - 1];
+        }
         else {
             return "Not valid OPP Code.";
             
         }
     }
-    void add_dual_opp(int code_num_in, int convert_code, bool convert_on_registers){
+    void add_dual_opp(int code_num_in, int convert_code, bool convert_on_registers, string opp_name_string){
         dual_opp_int[code_num_in - 1] = convert_code;
         register_convert[code_num_in - 1] = convert_on_registers;
+        dual_opp_name_string[convert_code - 1] = opp_name_string;
     }
     bool is_dual_opp(int code_num){
         return dual_opp[code_num - 1];
@@ -80,12 +85,13 @@ class oppcode_dictionary {
 assembler_mem current_assebler_memory[MEM_SIZE];
 oppcode_dictionary OPPS_DICTIONARY;
 bool found_first_opp = false;
-int first_opp_location;
+int first_opp_location = 0;
+int last_opp_location;
 
 class my_assembly_VM {
     public:
     // VM Items
-    int     VM_REGISTERS[9];
+    int     VM_REGISTERS[NUM_OF_REG];
     char     VM_MEMORY[MEM_SIZE*12];
 
     
@@ -106,18 +112,28 @@ class my_assembly_VM {
     //     return temp_int;
     // }
 
-    void run(int program_start_location){
+    void run(int program_start_location, int program_end_location){
         bool run = true;
         int current_operation;
         int current_arg1;
         int current_arg2;
         VM_REGISTERS[8] = program_start_location;
+        VM_REGISTERS[9] = program_end_location;
+        VM_REGISTERS[10] = ((MEM_SIZE)*12)-1;
+        VM_REGISTERS[12] = ((MEM_SIZE)*12)-1;
+        // R8 is the PC
+        // R9 is the SL (stack Limit)
+        // R10 is the SP (stack Pointer)
+        // R11 is the FP (frame Pointer) 
+        // R12 is the SB (Stack Base)
+        
         while (run){
 
             current_operation = *(int*)(VM_MEMORY+(VM_REGISTERS[8]));
             current_arg1 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+4));
             current_arg2 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+8));
-            
+            if(debug_on) cout << OPPS_DICTIONARY.get_opp_name(current_operation) << " ARG 1: (" << current_arg1 << ") ARG 2: (" << current_arg2 << ")" << endl;
+
             VM_REGISTERS[8]+=12;
             switch (current_operation){
                 case 1: { //JMP
@@ -127,7 +143,7 @@ class my_assembly_VM {
                 break;
                 case 2: { //JMR
                     // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
-                    VM_REGISTERS[8] = VM_REGISTERS[current_arg1];
+                    VM_REGISTERS[8] = VM_REGISTERS[current_arg2];
                 }
                 break;
                 case 3: { //BNZ
@@ -260,7 +276,11 @@ class my_assembly_VM {
                             cout << temp_char;
                         }
                         break;
-                        case 4: run = false;
+                        case 4: {
+                            char temp_char = getchar();
+                            if(debug_on) cout << "I recieved: " << temp_char << endl;
+                            *(char*)(VM_REGISTERS+3) = temp_char;
+                        }
                         break;
                         default: 
                         if(debug_on) cout << "Debud: I ran" << endl;
@@ -271,7 +291,8 @@ class my_assembly_VM {
                 }
                 break;
                 case 22: { //STR
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    *(int*)(VM_MEMORY+(VM_REGISTERS[current_arg2])) = VM_REGISTERS[current_arg1];
                 }
                 break;
                 case 23: { //LDR
@@ -325,10 +346,10 @@ void initialize(){
     OPPS_DICTIONARY.add("CMP",20,'D','S',false);
     OPPS_DICTIONARY.add("TRP",21,'I',' ',false);
     // list dual defined opp codes
-    OPPS_DICTIONARY.add_dual_opp(9,22,true); // STR
-    OPPS_DICTIONARY.add_dual_opp(10,23,true); // LDR
-    OPPS_DICTIONARY.add_dual_opp(11,24,true); // STB
-    OPPS_DICTIONARY.add_dual_opp(12,25,true); // LDB
+    OPPS_DICTIONARY.add_dual_opp(9,22,true, "STR(INDIRECT)"); // STR
+    OPPS_DICTIONARY.add_dual_opp(10,23,true, "LDR(INDIRECT)"); // LDR
+    OPPS_DICTIONARY.add_dual_opp(11,24,true, "STB(INDIRECT)"); // STB
+    OPPS_DICTIONARY.add_dual_opp(12,25,true, "LDB(INDIRECT)"); // LDB
 }
 
 // Label map object
@@ -342,6 +363,7 @@ int replace_label(string label_in) {
         return labels[label_in];
     }
 }
+
 void my_assembler_label_replace(){
     for (int i = 0; i < MEM_SIZE; i++) {
         if (current_assebler_memory[i].arg1_is_label){
@@ -364,11 +386,11 @@ void add_label(string key_in, int location){
 int is_label(string key_in, int location){
     bool is_label = true;
     int location_return = 0;
-    if(isdigit(key_in[0])){
+    if(isdigit(key_in[0]) | key_in[0] == '-' | key_in[0] == '+'){
         is_label = false;
         location_return = stoi(key_in);
     }
-    for (int i = 0; i < 9; i++) // Check if item is a register
+    for (int i = 0; i < NUM_OF_REG; i++) // Check if item is a register
     {
         if(REGISTER_LIST[i] == key_in){ 
             if(debug_on) cout << "reg: ";
@@ -385,8 +407,9 @@ int is_label(string key_in, int location){
 }
 void my_assembler(string instruction_in, int &location,int &count){
     smatch m;
-    regex gen_opp_serach ("(\\w+)*? ?([A-Z]{2,3}) (R[0-8])? *(R[0-8]|[-]?\\w+)");   // matches words beginning by "sub"
+    regex gen_opp_serach ("(\\w+)*? ?([A-Z]{2,3}) (R[0-9][0-9]?)? *(R[0-9][0-9]?|[-]?\\w+)");   // matches words beginning by "sub"
     regex label_search ("(\\w+)? *.(INT|BYT) *[']?([-]?\\w+)[']?");
+
 
     if(std::regex_search(instruction_in,m,label_search)){
         // for (auto x:m) std::cout << x << endl;
@@ -555,9 +578,10 @@ int main(int argc, char** argv)
             my_assembler(temp_string, location, count); //assembler pass one
             location++;
         }
+        last_opp_location = count; //find the last place of the code
         my_assembler_label_replace(); //replace all labels with addresses
         my_assembler_transfer_to_mem(VM1); //transfer assembly to VM memory
-        VM1.run(first_opp_location);
+        VM1.run(first_opp_location, last_opp_location);
     }
     else{
         if(debug_on) cout << "No Text file avalible!\n";

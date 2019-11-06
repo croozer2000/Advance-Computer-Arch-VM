@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/vm.exe",
             // "args": ["proj2b.asm"],
-            "args": ["proj2b.asm", "-d"],
+            "args": ["proj3.asm", "-d"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
