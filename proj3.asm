@@ -8,6 +8,7 @@ cData .BYT 0
 .BYT 0
 .BYT 0
 ent .BYT 10 //return character
+atSign .BYT 64
 flag .INT 1
 start ADD R1 R2
 ADI R10 -4      //move stack pointer size of int
@@ -26,6 +27,9 @@ TRP 4
 LDB R5 ent
 CMP R5 R3 // compare to a return char to break from loop
 BRZ R5 getCharReturn // if char is a return char branch to function return
+LDB R5 atSign
+CMP R5 R3 // compare to a @ char to break from loop
+BRZ R5 done // if char is a @ char branch to function return
 LDR R0 cSize //getChar function - check if we are under array size
 CMP R1 R0 // break loop if char array too big
 BNZ R1 getCharCont
