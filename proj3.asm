@@ -8,6 +8,7 @@ cData .BYT 0
 .BYT 0
 .BYT 0
 ent .BYT 10 //return character
+flag .INT 1
 start ADD R1 R2
 ADI R10 -4      //move stack pointer size of int
 MOV R3 R11      //save fame pointer for later
@@ -19,20 +20,22 @@ ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP getChar
 JMP start
-getChar LDR R0 cSize //getChar function - check if we are under array size
-LDR R1 cCnt
+getChar LDR R1 cCnt
 MOV R2 R1   //create copy of count
-CMP R1 R0 // break loop if char is too large
-BRZ R1 done
-LDA R0 cData    //grab location of cData
-ADD R0 R2       //Increment cData
 TRP 4
-ADI R2 1    //add 1 to the cCnt
-STR R2 cCnt
 LDB R5 ent
 CMP R5 R3 // compare to a return char to break from loop
 BRZ R5 getCharReturn // if char is a return char branch to function return
-STR R3 R0       //Store the char to the array
+LDR R0 cSize //getChar function - check if we are under array size
+CMP R1 R0 // break loop if char array too big
+BNZ R1 getCharCont
+LDR R7 flag     //set the larger than array flag
+JMP getChar
+getCharCont LDA R0 cData    //grab location of cData
+ADD R0 R2       //Increment cCount pointer
+STB R3 R0       //Store the char to the array
+ADI R2 1    //add 1 to the cCnt
+STR R2 cCnt
 JMP getChar
 getCharReturn LDR R5 R11    //grab the return address
 MOV R3 R11      //copy the frame pointer over

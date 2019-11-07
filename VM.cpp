@@ -301,13 +301,14 @@ class my_assembly_VM {
                 }
                 break;
                 case 24: { //STB
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    VM_MEMORY[VM_REGISTERS[current_arg2]] = *(char*)(VM_REGISTERS+current_arg1);
                 }
                 break;
                 case 25: { //LDB
                     // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
                     VM_REGISTERS[current_arg1] = 0;
-                    *(char*)(VM_REGISTERS+current_arg1) = (VM_MEMORY[(VM_REGISTERS[current_arg2])]);
+                    *(char*)(VM_REGISTERS+current_arg1) = VM_MEMORY[current_arg2];
                 }
                 break;
                 default: {
