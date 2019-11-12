@@ -102,6 +102,7 @@ CMP R5 R3 // compare to a return char to break from loop
 BRZ R5 getCharReturn // if char is a return char branch to function return
 LDB R5 atSign
 CMP R5 R3 // compare to a @ char to break from loop
+ADD R5 R1
 BRZ R5 done // if char is a @ char branch to function return
 LDR R0 cSize //getChar function - check if we are under array size
 CMP R1 R0 // break loop if char array too big
@@ -160,7 +161,6 @@ done TRP 0
 whatPrint SUB R0 R0        //print line function -- clear Reg0
 LDB R7 tolargeflag
 LDB R6 notNumflag
-TRP 99
 BNZ R7 printTooBig
 BNZ R6 printNotNum
 
