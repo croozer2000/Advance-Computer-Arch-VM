@@ -77,7 +77,16 @@ MOV R1 R8       //save the PC to a temp location
 ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP isNumber     //function call code end - 
-TRP 99
+
+ADI R10 -4      //function call code start - move stack pointer size of int
+MOV R3 R11      //save fame pointer for later
+MOV R11 R10     //frame pointer pointing at bottom of activation record (stack pointer)
+ADI R10 -4      //move stack pointer size of int
+STR R3 R10      //place previous frame pointer on the stack
+MOV R1 R8       //save the PC to a temp location
+ADI R1 36       //caluclate return address
+STR R1 R11      //store the return address
+JMP whatPrint     //function call code end - 
 
 SUB R0 R0       //Reset Flags
 STB R0 cCnt
@@ -90,7 +99,7 @@ MOV R2 R1   //create copy of count
 TRP 4
 LDB R5 ent
 CMP R5 R3 // compare to a return char to break from loop
-BRZ R5 Return // if char is a return char branch to function return
+BRZ R5 getCharReturn // if char is a return char branch to function return
 LDB R5 atSign
 CMP R5 R3 // compare to a @ char to break from loop
 BRZ R5 done // if char is a @ char branch to function return
@@ -101,6 +110,13 @@ SUB R7 R7
 ADI R7 1
 STB R7 tolargeflag    //set the larger than array flag
 JMP getChar
+
+getCharReturn LDA R1 cData 
+LDR R2 cCnt
+ADD R1 R2
+LDB R2 ent
+STB R2 R1 
+JMP Return
 
 getCharCont LDA R0 cData    //grab location of cData
 ADD R0 R2       //Increment cCount pointer
@@ -132,11 +148,74 @@ BRZ R4 isNumberloop         //                              - or not return symb
 ADI R6 1                    //Set the not number flag
 STB R3 notNumflag
 
-
 Return LDR R5 R11    //grab the return address
 MOV R3 R11      //copy the frame pointer over
 ADI R3 -4       //increment copy of frame pointer to point to previous FP location
 LDR R11 R3      //place previous frame pointer back
 ADI R10 8      //Decrement stack pointer
 JMR R5
+
 done TRP 0
+
+whatPrint SUB R0 R0        //print line function -- clear Reg0
+LDB R7 tolargeflag
+LDB R6 notNumflag
+TRP 99
+BNZ R7 printTooBig
+BNZ R6 printNotNum
+
+LDA R2 numberString
+ADI R10 -4      //function call code start printlns- move stack pointer size of int
+MOV R3 R11     
+MOV R11 R10     
+ADI R10 -4      
+STR R3 R10      
+MOV R1 R8       
+ADI R1 36       
+STR R1 R11
+JMP println2     //function call code end printlns- 
+
+LDA R2 cData
+ADI R10 -4      //function call code start printlns- move stack pointer size of int
+MOV R3 R11     
+MOV R11 R10     
+ADI R10 -4      
+STR R3 R10      
+MOV R1 R8       
+ADI R1 36       
+STR R1 R11
+JMP printlns     //function call code end printlns- 
+JMP Return
+
+printNotNum LDB R3 notNumflag
+TRP 3           //print not number string
+LDA R2 stringNotNum
+JMP startprint
+
+printTooBig LDA R2 tooBig
+startprint ADI R10 -4      //function call code start printlns- move stack pointer size of int
+MOV R3 R11     
+MOV R11 R10     
+ADI R10 -4      
+STR R3 R10      
+MOV R1 R8       
+ADI R1 36       
+STR R1 R11
+JMP printlns     //function call code end printlns- 
+JMP Return
+
+printlns LDB R1 ent     //print function
+LDB R3 R2
+ADI R2 1
+TRP 3
+CMP R1 R3
+BNZ R1 printlns     //if char is not enter then loop
+JMP Return
+
+println2 LDB R1 ent     //print function that does not print return chars
+LDB R3 R2
+ADI R2 1
+CMP R1 R3
+BRZ R1 Return     //if char is not enter then loop
+TRP 3
+JMP println2
