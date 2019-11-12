@@ -102,6 +102,7 @@ CMP R5 R3 // compare to a return char to break from loop
 BRZ R5 getCharReturn // if char is a return char branch to function return
 LDB R5 atSign
 CMP R5 R3 // compare to a @ char to break from loop
+MUL R5 R5
 ADD R5 R1
 BRZ R5 done // if char is a @ char branch to function return
 LDR R0 cSize //getChar function - check if we are under array size
@@ -175,7 +176,12 @@ ADI R1 36
 STR R1 R11
 JMP println2     //function call code end printlns- 
 
-LDA R2 cData
+LDR R0 cCnt     //check if any items were passed
+BNZ R0 haveItem
+SUB R3 R3
+ADI R3 48
+TRP 3
+haveItem LDA R2 cData
 ADI R10 -4      //function call code start printlns- move stack pointer size of int
 MOV R3 R11     
 MOV R11 R10     
