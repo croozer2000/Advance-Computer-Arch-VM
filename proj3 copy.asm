@@ -45,7 +45,7 @@ CMP R5 R3
 BRZ R5 isNumberloop         //continue through branches if - not number
 BRZ R4 isNumberloop         //                              - or not return symbol
 ADI R6 1                    //Set the not number flag
-STR R6 notNumflag
+STB R3 notNumflag
 isNumberReturn LDR R5 R11    //Return code start - grab the return address
 MOV R3 R11      //copy the frame pointer over
 ADI R3 -4       //increment copy of frame pointer to point to previous FP location

@@ -53,8 +53,10 @@ numberString .BYT 'O'
 .BYT 32
 .BYT 'i'
 .BYT 's'
+.BYT 32
 .BYT 10
 start ADD R1 R2
+ADI R7 1
 ADI R10 -4      //function call code start - move stack pointer size of int
 MOV R3 R11      //save fame pointer for later
 MOV R11 R10     //frame pointer pointing at bottom of activation record (stack pointer)
@@ -93,7 +95,8 @@ STR R1 R11
 JMP printlns     //function call code end printlns- 
 JMP Return
 
-printNotNum TRP 3           //print not number string
+printNotNum LDB R3 notNumflag
+TRP 3           //print not number string
 LDA R2 stringNotNum
 JMP startprint
 
