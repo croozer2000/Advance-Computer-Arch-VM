@@ -13,6 +13,7 @@ tolargeflag .BYT 0
 notNumflag .BYT 0
 lowerNum .BYT 47
 upperNum .BYT 58
+
 start ADD R1 R2
 ADI R10 -4      //function call code start - move stack pointer size of int
 MOV R3 R11      //save fame pointer for later
@@ -23,13 +24,15 @@ MOV R1 R8       //save the PC to a temp location
 ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP isNumber     //function call code end - 
+
 JMP start
+
 isNumber LDR R0 cCnt        //grab cCnt
 isNumberloop LDA R1 cData                //grab location of cData
 SUB R3 R3                   //clear register 2
 SUB R6 R6                   //clear register 6
 ADI R0 -1
-BLT R0 isNumberReturn       //if cCnt is less than zero then end function
+BLT R0 Return       //if cCnt is less than zero then end function
 MOV R2 R1                   //copy the cData pointer
 ADD R2 R0                   //base and offset
 LDB R3 R2                   //load the character
@@ -46,7 +49,8 @@ BRZ R5 isNumberloop         //continue through branches if - not number
 BRZ R4 isNumberloop         //                              - or not return symbol
 ADI R6 1                    //Set the not number flag
 STB R3 notNumflag
-isNumberReturn LDR R5 R11    //Return code start - grab the return address
+
+Return LDR R5 R11    //Return code start - grab the return address
 MOV R3 R11      //copy the frame pointer over
 ADI R3 -4       //increment copy of frame pointer to point to previous FP location
 LDR R11 R3      //place previous frame pointer back

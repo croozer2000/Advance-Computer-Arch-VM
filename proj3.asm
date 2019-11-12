@@ -1,4 +1,4 @@
-cSize .INT 7
+cSize .INT 5
 cCnt .INT 0
 cData .BYT 0
 .BYT 0
@@ -9,7 +9,53 @@ cData .BYT 0
 .BYT 0
 ent .BYT 10 //return character
 atSign .BYT 64
-flag .INT 1
+tolargeflag .BYT 0
+notNumflag .BYT 0
+lowerNum .BYT 47
+upperNum .BYT 58
+stringNotNum .BYT 32 //a space
+.BYT 'i'
+.BYT 's'
+.BYT 32
+.BYT 'n'
+.BYT 'o'
+.BYT 't'
+.BYT 32
+.BYT 'n'
+.BYT 'u'
+.BYT 'm'
+.BYT 'b'
+.BYT 'e'
+.BYT 'r'
+.BYT 10
+tooBig .BYT 'N'
+.BYT 'u'
+.BYT 'm'
+.BYT 'b'
+.BYT 'e'
+.BYT 'r'
+.BYT 32
+.BYT 't'
+.BYT 'o'
+.BYT 'o'
+.BYT 32
+.BYT 'B'
+.BYT 'i'
+.BYT 'g'
+.BYT 10
+numberString .BYT 'O'
+.BYT 'p'
+.BYT 'e'
+.BYT 'r'
+.BYT 'a'
+.BYT 'n'
+.BYT 'd'
+.BYT 32
+.BYT 'i'
+.BYT 's'
+.BYT 32
+.BYT 10
+
 start ADD R1 R2
 ADI R10 -4      //move stack pointer size of int
 MOV R3 R11      //save fame pointer for later
@@ -20,7 +66,10 @@ MOV R1 R8       //save the PC to a temp location
 ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP getChar
+SUB R0 R0
+STB R0 cCnt
 JMP start
+
 getChar LDR R1 cCnt
 MOV R2 R1   //create copy of count
 TRP 4
@@ -33,14 +82,19 @@ BRZ R5 done // if char is a @ char branch to function return
 LDR R0 cSize //getChar function - check if we are under array size
 CMP R1 R0 // break loop if char array too big
 BNZ R1 getCharCont
-LDR R7 flag     //set the larger than array flag
+SUB R7 R7
+ADI R7 1
+STB R7 tolargeflag    //set the larger than array flag
+TRP 99
 JMP getChar
+
 getCharCont LDA R0 cData    //grab location of cData
 ADD R0 R2       //Increment cCount pointer
 STB R3 R0       //Store the char to the array
 ADI R2 1    //add 1 to the cCnt
 STR R2 cCnt
 JMP getChar
+
 getCharReturn LDR R5 R11    //grab the return address
 MOV R3 R11      //copy the frame pointer over
 ADI R3 -4       //increment copy of frame pointer to point to previous FP location
