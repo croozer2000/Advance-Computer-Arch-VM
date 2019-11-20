@@ -1,6 +1,6 @@
 label .BYT 13
 
-ADI R0 1
+ADI R0 12
 main ADI R10 -4      //function call code start - move stack pointer size of int
 MOV R3 R11      //save frame pointer for later
 MOV R11 R10     //frame pointer pointing at bottom of activation record (stack pointer)
@@ -42,7 +42,9 @@ JMP fibonacci     //function call code end -
 
 MOV R1 R0       //copy the return item to another register
 LDR R0 R10      //reload from stack the number
-ADI R0 -2
+SUB R4 R4
+ADI R4 2
+SUB R0 R4
 STR R1 R10      //save previous return value to stack
 
 ADI R10 -4      //second fib call - move stack pointer size of int

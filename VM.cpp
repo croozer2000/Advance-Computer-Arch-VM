@@ -12,7 +12,7 @@
 
 // Static items
 using namespace std;
-#define MEM_SIZE 1000
+#define MEM_SIZE 100
 string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12"};
 #define NUM_OF_REG 13
 #define NUM_OPPS 25
@@ -128,7 +128,9 @@ class my_assembly_VM {
         // R12 is the SB (Stack Base)
         
         while (run){
-
+            //stack overflow test
+            if (VM_REGISTERS[10] <= VM_REGISTERS[9]+32) cout << "STACK OVERFLOW";
+            if (VM_REGISTERS[10] > VM_REGISTERS[12]) cout << "STACK UNDERFLOW";
             current_operation = *(int*)(VM_MEMORY+(VM_REGISTERS[8]));
             current_arg1 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+4));
             current_arg2 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+8));
