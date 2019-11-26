@@ -1,7 +1,58 @@
-label .BYT 13
+ent .BYT 10 //return character
+fibString .BYT 'F'
+.BYT 'i'
+.BYT 'b'
+.BYT 'o'
+.BYT 'n'
+.BYT 'a'
+.BYT 'c'
+.BYT 'c'
+.BYT 'i'
+.BYT 32
+.BYT 10
 
-ADI R0 12
-main ADI R10 -4      //function call code start - move stack pointer size of int
+stringIs .BYT 32
+.BYT 'i'
+.BYT 's'
+.BYT 32
+.BYT 10
+
+main TRP 2      //grab integer
+MOV R0 R3
+SUB R3 R3
+CMP R3 R0
+BRZ R3 done
+MOV R3 R0
+ADI R10 -4      //Save the passed int to the stack
+STR R3 R10
+
+LDA R2 fibString
+ADI R10 -4      //function call code start - move stack pointer size of int
+MOV R3 R11      //save frame pointer for later
+MOV R11 R10     //frame pointer pointing at bottom of activation record (stack pointer)
+ADI R10 -4      //move stack pointer size of int
+STR R3 R10      //place previous frame pointer on the stack
+MOV R1 R8       //save the PC to a temp location
+ADI R1 36       //caluclate return address
+STR R1 R11      //store the return address
+JMP println2     //function call code end - 
+
+LDR R3 R10
+ADI R10 4
+TRP 1
+
+LDA R2 stringIs
+ADI R10 -4      //function call code start - move stack pointer size of int
+MOV R3 R11      //save frame pointer for later
+MOV R11 R10     //frame pointer pointing at bottom of activation record (stack pointer)
+ADI R10 -4      //move stack pointer size of int
+STR R3 R10      //place previous frame pointer on the stack
+MOV R1 R8       //save the PC to a temp location
+ADI R1 36       //caluclate return address
+STR R1 R11      //store the return address
+JMP println2     //function call code end - 
+
+ADI R10 -4      //function call code start - move stack pointer size of int
 MOV R3 R11      //save frame pointer for later
 MOV R11 R10     //frame pointer pointing at bottom of activation record (stack pointer)
 ADI R10 -4      //move stack pointer size of int
@@ -14,7 +65,8 @@ print MOV R3 R0
 TRP 1
 LDB R3 ent
 TRP 3
-TRP 0
+JMP main
+done TRP 0
 
 fibonacci SUB R1 R1
 ADI R1 1
@@ -61,3 +113,11 @@ LDR R1 R10      //grab last return value back off stack
 ADD R0 R1       //add new return with old return
 ADI R10 4       //return stack count to normal
 JMP Return
+
+println2 LDB R1 ent     //print function that does not print return chars
+LDB R3 R2
+ADI R2 1
+CMP R1 R3
+BRZ R1 Return     //if char is not enter then loop
+TRP 3
+JMP println2
