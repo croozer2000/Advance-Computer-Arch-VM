@@ -83,7 +83,6 @@ STR R1 R11      //store the return address
 JMP println2     //function call code end - 
 
 LDR R3 R10      //pull from the stack the placed number
-ADI R10 4
 TRP 1
 
 LDA R2 stringIs
@@ -96,6 +95,9 @@ MOV R1 R8       //save the PC to a temp location
 ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP println2     //function call code end - 
+
+LDR R0 R10      //pull from the stack the initial number
+ADI R10 4       //return stack to normal
 
 ADI R10 -4      //function call code start - move stack pointer size of int
 MOV R3 R11      //save frame pointer for later
