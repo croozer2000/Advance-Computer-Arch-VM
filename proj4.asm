@@ -18,6 +18,7 @@ stringIs .BYT 32
 .BYT 10
 
 cnt .INT 0
+offset .INT 4
 arrayThirty .INT 0
 .INT 0
 .INT 0
@@ -69,7 +70,7 @@ JMP main
 fibMain MOV R3 R0
 ADI R10 -4      //Save the passed int to the stack
 STR R3 R10
-MOV R0 R7       //reg 7 will not be altered during the course of fibbinachi
+MOV R7 R0       //reg 7 will not be altered during the course of fibbinachi
 
 LDA R2 fibString
 ADI R10 -4      //function call code start - move stack pointer size of int
@@ -113,6 +114,21 @@ print MOV R3 R0
 TRP 1
 LDB R3 ent
 TRP 3
+
+LDR R1 cnt      //Store items to the array
+LDA R2 arrayThirty
+LDR R4 offset
+MUL R4 R1
+ADD R4 R2
+STR R7 R4       //store the x value
+ADI R1 1
+LDR R4 offset
+MUL R4 R1
+ADD R4 R2
+STR R0 R4
+ADI R1 1
+STR R1 cnt      //update the cnt variable
+
 JMP Return        //when creating multi threading replace JMP with a end
 
 fibonacci SUB R1 R1
