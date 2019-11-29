@@ -1,4 +1,6 @@
 ent .BYT 10 //return character
+spc .BYT 32 //space character
+comma .BYT 44 //comma character
 fibString .BYT 'F'
 .BYT 'i'
 .BYT 'b'
@@ -185,4 +187,42 @@ BRZ R1 Return     //if char is not enter then loop
 TRP 3
 JMP println2
 
-done TRP 0      //end statement
+done LDR R0 cnt     //initialize counters
+ADI R0 -1
+SUB R2 R2
+LDA R1 arrayThirty  //grab adrress of array
+SUB R4 R4
+ADI R4 4
+doneloop MOV R3 R0
+CMP R3 R2           //check if cnt is greater than reg2 counter
+BGT R3 doneCont     //continue if cnt is greater than zero
+TRP 0      //end statement
+
+doneCont BRZ R2 noSpace //skip placing the first comma and space by checking reg2
+LDB R3 comma        //print a comma and a space
+TRP 3
+LDB R3 spc
+TRP 3
+
+noSpace MOV R3 R1  //print out the first number
+MOV R5 R2
+MUL R5 R4   //multiply by 4 to get propper offset
+ADD R3 R5
+LDR R3 R3
+TRP 1
+
+LDB R3 comma        //print a comma and a space
+TRP 3
+LDB R3 spc
+TRP 3
+
+MOV R3 R1           //print out the second number
+MOV R5 R0
+MUL R5 R4   //multiply by 4 to get propper offset
+ADD R3 R5
+LDR R3 R3
+TRP 1
+
+ADI R0 -1           //increment counters
+ADI R2 1
+JMP doneloop
