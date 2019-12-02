@@ -52,8 +52,8 @@ arrayThirty .INT 0
 .INT 0
 .INT 0
 
-main TRP 2      //grab integer
-MOV R0 R3
+main TRP 2      //grab integer 
+MOV R0 R3       //reg zero is protected
 SUB R3 R3
 CMP R3 R0
 BRZ R3 done
@@ -68,6 +68,7 @@ ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP fibMain     //function call code end - 
 JMP main
+
 
 fibMain MOV R3 R0
 ADI R10 -4      //Save the passed int to the stack
