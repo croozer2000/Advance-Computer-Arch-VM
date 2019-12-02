@@ -15,7 +15,7 @@ using namespace std;
 #define MEM_SIZE 400
 string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12"};
 #define NUM_OF_REG 13
-#define NUM_OPPS 25
+#define NUM_OPPS 30
 bool debug_on = true;
 
 class assembler_mem {
@@ -323,6 +323,26 @@ class my_assembly_VM {
                     *(char*)(VM_REGISTERS+current_arg1) = VM_MEMORY[VM_REGISTERS[current_arg2]];
                 }
                 break;
+                case 26: { //RUN
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                }
+                break;
+                case 27: { //END
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                }
+                break;
+                case 28: { //BLK
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                }
+                break;
+                case 29: { //LCK
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                }
+                break;
+                case 30: { //ULK
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                }
+                break;
                 default: {
                     cout << "ERROR not an oppcode at memory location: (" << VM_REGISTERS[8]-12 << ") OPP Code dump: " << + current_operation <<endl;
                 }
@@ -358,6 +378,11 @@ void initialize(){
     OPPS_DICTIONARY.add("OR",19,'D','S',false);
     OPPS_DICTIONARY.add("CMP",20,'D','S',false);
     OPPS_DICTIONARY.add("TRP",21,'I',' ',false);
+    OPPS_DICTIONARY.add("RUN",26,'D','L',false);
+    OPPS_DICTIONARY.add("END",27,' ',' ',false);
+    OPPS_DICTIONARY.add("BLK",28,' ',' ',false);
+    OPPS_DICTIONARY.add("LCK",29,'L',' ',false);
+    OPPS_DICTIONARY.add("ULK",30,'L',' ',false);
     // list dual defined opp codes
     OPPS_DICTIONARY.add_dual_opp(9,22,true, "STR(INDIRECT)"); // STR
     OPPS_DICTIONARY.add_dual_opp(10,23,true, "LDR(INDIRECT)"); // LDR
@@ -422,6 +447,8 @@ void my_assembler(string instruction_in, int &location,int &count){
     smatch m;
     regex gen_opp_serach ("(\\w+)*? ?([A-Z]{2,3}) (R[0-9][0-9]?)? *(R[0-9][0-9]?|[-]?\\w+)");   // matches words beginning by "sub"
     regex label_search ("(\\w+)? *.(INT|BYT) *[']?([-]?\\w+)[']?");
+    regex mutext_search ("(\\w+)*? *(LCK|ULK) *(\\w*)");
+    regex end_blk_search ("(\\w+)*? *(END|BLK)");
 
 
     if(std::regex_search(instruction_in,m,label_search)){
@@ -466,6 +493,55 @@ void my_assembler(string instruction_in, int &location,int &count){
         }
         
         if(debug_on) cout << endl;
+    }
+    // search for LCK and ULK
+    else if(std::regex_search(instruction_in,m,mutext_search)){
+        if (m[0] != ""){
+            if(debug_on) cout << "Found MATCH: (";
+            if(debug_on) cout << m[0] << ")"; //full matched string
+            current_assebler_memory[location].location = count;
+        }
+        if (m[1] != ""){
+            if(debug_on) cout << " label: (";
+            if(debug_on) cout << m[1] << ")"; //label
+            add_label(m[1],count);
+        }
+        if (m[2] != ""){
+            if(debug_on) cout << " OP CODE: (";
+            if(debug_on) cout << m[2] << ")";   //oppcode
+            current_assebler_memory[location].opp_code = OPPS_DICTIONARY.get_code(m[2]); //convert the string to opp code
+        }
+        if (m[3] != ""){
+            if(debug_on) cout << " Register/Label: (";
+            if(is_label(m[3],location) == -2){
+                current_assebler_memory[location].arg2_string = m[3];
+                current_assebler_memory[location].arg2_is_label = true;
+            }
+            else {
+                current_assebler_memory[location].arg2 = is_label(m[3],location);
+            }
+            if(debug_on) cout << m[4] << ")";   //register/label
+        }
+        count+=12;
+    }
+    // Search for BLK and END
+    else if(std::regex_search(instruction_in,m,end_blk_search)){
+        if (m[0] != ""){
+            if(debug_on) cout << "Found MATCH: (";
+            if(debug_on) cout << m[0] << ")"; //full matched string
+            current_assebler_memory[location].location = count;
+        }
+        if (m[1] != ""){
+            if(debug_on) cout << " label: (";
+            if(debug_on) cout << m[1] << ")"; //label
+            add_label(m[1],count);
+        }
+        if (m[2] != ""){
+            if(debug_on) cout << " OP CODE: (";
+            if(debug_on) cout << m[2] << ")";   //oppcode
+            current_assebler_memory[location].opp_code = OPPS_DICTIONARY.get_code(m[2]); //convert the string to opp code
+        }
+        count+=12;
     }
     // General instruction Regex search
     else if(std::regex_search(instruction_in,m,gen_opp_serach)){
