@@ -16,6 +16,7 @@ using namespace std;
 string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12"};
 #define NUM_OF_REG 13
 #define NUM_OPPS 30
+#define NUM_THREADS 5
 bool debug_on = true;
 
 class assembler_mem {
@@ -88,12 +89,34 @@ bool found_first_opp = false;
 int first_opp_location = 0;
 int last_opp_location;
 
+class stack_memory_locations {
+    public:
+    int stack_bottom;
+    int stack_top;
+    int reg_start;
+    int size_of_stacks;
+    int reg_size;
+
+    void calc_size(int program_end_location, int thread_number){
+        size_of_stacks = ((MEM_SIZE)*12)-1 - program_end_location;
+        size_of_stacks = size_of_stacks / (NUM_THREADS + 1) - 1;
+        reg_size = (NUM_OF_REG * 4);
+
+        if(thread_number == 0){
+            stack_bottom = ((MEM_SIZE)*12) - 1;   
+        }
+        else{
+            stack_bottom = ((MEM_SIZE)*12) - 1 - (thread_number*(size_of_stacks + 1));
+        }
+        reg_start = stack_bottom - size_of_stacks;
+        stack_top = reg_start + reg_size;
+    }
+};
 class my_assembly_VM {
     public:
     // VM Items
     int     VM_REGISTERS[NUM_OF_REG];
     char     VM_MEMORY[MEM_SIZE*12];
-
     
     void initialize(){
         for(int i = 0; i < NUM_OF_REG; i++){
@@ -117,6 +140,10 @@ class my_assembly_VM {
         int current_operation;
         int current_arg1;
         int current_arg2;
+
+        int current_thread = 0;
+        int thread_states[NUM_THREADS];
+
         VM_REGISTERS[8] = program_start_location;
         VM_REGISTERS[9] = program_end_location;
         VM_REGISTERS[10] = ((MEM_SIZE)*12)-1;
@@ -126,7 +153,23 @@ class my_assembly_VM {
         // R10 is the SP (stack Pointer)
         // R11 is the FP (frame Pointer) 
         // R12 is the SB (Stack Base)
-        
+
+        // calculate new stack sizes
+        stack_memory_locations stack_main;
+        stack_memory_locations stacks[NUM_THREADS];
+        stack_main.calc_size(program_end_location,0);
+        for (int i = 1; i <= NUM_THREADS; i++){
+            stacks[i-1].calc_size(program_end_location,i);
+            thread_states[i-1] = -1;
+        }
+
+        // initialize main thread
+        // TO-DO use this code to initialize new threads using the stacks variable
+        thread_states[0] = 1;
+        VM_REGISTERS[9] = stack_main.stack_top;
+        VM_REGISTERS[10] = stack_main.stack_bottom;
+        VM_REGISTERS[12] = stack_main.stack_bottom;
+
         while (run){
             //stack overflow test
             if (VM_REGISTERS[10] <= VM_REGISTERS[9]+32) cout << "STACK OVERFLOW";
@@ -324,23 +367,23 @@ class my_assembly_VM {
                 }
                 break;
                 case 26: { //RUN
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 27: { //END
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 28: { //BLK
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 29: { //LCK
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 case 30: { //ULK
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation[0]) << endl;
+                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
                 }
                 break;
                 default: {
@@ -348,6 +391,8 @@ class my_assembly_VM {
                 }
                 break;
             }
+            // TO-DO save data to thread stack
+            // TO-DO create a context switch function
         }
     }
 };
