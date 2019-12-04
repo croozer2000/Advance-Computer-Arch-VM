@@ -12,12 +12,14 @@
 
 // Static items
 using namespace std;
+// #define MEM_SIZE 50
 #define MEM_SIZE 400
 string REGISTER_LIST[] = {"R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12"};
 #define NUM_OF_REG 13
 #define NUM_OPPS 30
 #define NUM_THREADS 5
 bool debug_on = true;
+
 
 class assembler_mem {
     public:
@@ -61,6 +63,9 @@ class oppcode_dictionary {
         else if(code_num >= 22 & code_num < 25){
             return dual_opp_name_string[code_num - 1];
         }
+        else if(code_num >= 26 & code_num < 31){
+            return dual_opp_name_string[code_num - 1];
+        }
         else {
             return "Not valid OPP Code.";
             
@@ -95,6 +100,7 @@ class stack_memory_locations {
     int stack_top;
     int reg_start;
     int size_of_stacks;
+    int size_of_just_stack;
     int reg_size;
 
     void calc_size(int program_end_location, int thread_number){
@@ -110,6 +116,7 @@ class stack_memory_locations {
         }
         reg_start = stack_bottom - size_of_stacks;
         stack_top = reg_start + reg_size;
+        size_of_just_stack = size_of_stacks - reg_size;
     }
 };
 class my_assembly_VM {
@@ -135,6 +142,38 @@ class my_assembly_VM {
     //     return temp_int;
     // }
 
+    void memcopy_mem_mem(int start_destination, int start_source, int count,bool reverse=false){
+        int location_dest = start_destination;
+        int location_source = start_source;
+        char temp_char;
+        for(int i = 0; i < count; i++){
+            int temp1 = location_source+i;
+            int temp2 = location_dest+i;
+            if(!reverse){
+                temp_char = VM_MEMORY[temp1];
+                VM_MEMORY[temp2] = temp_char;
+            }
+            else{
+                temp_char = VM_MEMORY[temp2];
+                VM_MEMORY[temp1] = temp_char;
+            }
+            // cout << temp1 << ": " << *(char*)(VM_MEMORY+location_dest+i) << ", " << temp2 << ": "<< *(char*)(VM_MEMORY+location_source+i) << endl;
+        }
+    }
+    void memcopy_reg_mem(int start_destination, int count,bool reverse=false){
+        int location_dest = start_destination;
+        for(int i = 0; i < NUM_OF_REG; i++){
+            if(!reverse){
+                *(int*)(VM_MEMORY+start_destination+(i*4)) = *(int*)(VM_REGISTERS+i);
+            }
+            else{
+                *(int*)(VM_REGISTERS+i) = *(int*)(VM_MEMORY+start_destination+(i*4));
+            }
+            
+            // cout << (start_destination+(i*4)) << ": " << *(int*)(VM_MEMORY+start_destination+(i*4)) << ", " << Registers_in[i] << endl;
+        }
+    }
+
     void run(int program_start_location, int program_end_location){
         bool run = true;
         int current_operation;
@@ -143,6 +182,7 @@ class my_assembly_VM {
 
         int current_thread = 0;
         int thread_states[NUM_THREADS];
+        bool thread_enabled = false;
 
         VM_REGISTERS[8] = program_start_location;
         VM_REGISTERS[9] = program_end_location;
@@ -172,7 +212,7 @@ class my_assembly_VM {
 
         while (run){
             //stack overflow test
-            if (VM_REGISTERS[10] <= VM_REGISTERS[9]+32) cout << "STACK OVERFLOW";
+            if (VM_REGISTERS[10] <= VM_REGISTERS[9]) cout << "STACK OVERFLOW";
             if (VM_REGISTERS[10] > VM_REGISTERS[12]) cout << "STACK UNDERFLOW";
             current_operation = *(int*)(VM_MEMORY+(VM_REGISTERS[8]));
             current_arg1 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+4));
@@ -367,15 +407,62 @@ class my_assembly_VM {
                 }
                 break;
                 case 26: { //RUN
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if(debug_on) cout << "function RUN has been ran" << endl;
+                    bool find_thread = true;
+                    int temp_count = 1;
+                    while(thread_states[temp_count] != -1 && find_thread){  //find unactive thread
+                        temp_count++;
+                        if (temp_count >= NUM_THREADS){
+                            find_thread = false;
+                        }
+                    }
+                    if(thread_states[temp_count] == -1){
+                        VM_REGISTERS[current_arg1] = temp_count;
+                        // create function to change PC for new thread
+                        thread_states[temp_count] = 1;      //set the thread status to active
+
+                        // DEBUG MEMORY
+                        // int count1 = stack_main.stack_top;
+                        // int count2 = stacks[temp_count].stack_top;
+                        // for(int i = 0; i < stack_main.size_of_stacks; i++){
+                        //     VM_MEMORY[count1] = 'c';
+                        //     count1++;
+                        // }
+                        memcopy_mem_mem(stacks[temp_count].stack_top,stack_main.stack_top,stack_main.size_of_just_stack);
+                        int temp_reg8 = VM_REGISTERS[8];
+                        VM_REGISTERS[8] = current_arg2;
+                        memcopy_reg_mem(stacks[temp_count].reg_start,stack_main.reg_size);
+                        VM_REGISTERS[8] = temp_reg8;
+                    //    for (int i = 0; i < stack_main.size_of_just_stack; i++){
+                    //        cout << *(char*)(VM_MEMORY+stacks[temp_count].stack_top+i) << endl;
+                    //    }
+                    }
+                    else{
+                        cout << "Could not create new thread" << endl;
+                    }
                 }
                 break;
                 case 27: { //END
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if(current_thread != 0){
+                        thread_states[current_thread] = -1;
+                    }
                 }
                 break;
                 case 28: { //BLK
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    if(current_thread == 0){
+                        bool active_thread = false;
+                        for(int i = 1; i < NUM_THREADS; i++){
+                            if(thread_states[i] != 1){
+                                active_thread = true;
+                            }
+                        }
+                        if(active_thread){
+                            VM_REGISTERS[8]-=12;    //block thread by reversing PC counter increment
+                        }
+                    }
                 }
                 break;
                 case 29: { //LCK
@@ -391,8 +478,21 @@ class my_assembly_VM {
                 }
                 break;
             }
-            // TO-DO save data to thread stack
+            memcopy_mem_mem(stacks[current_thread].stack_top,stack_main.stack_top,stack_main.size_of_just_stack);
+            memcopy_reg_mem(stacks[current_thread].reg_start,stack_main.reg_size);
             // TO-DO create a context switch function
+            bool look_for_thread = true;
+            while(look_for_thread){
+                current_thread++;
+                if(current_thread >= NUM_THREADS){
+                    current_thread = 0;
+                }
+                if(thread_states[current_thread] != -1){
+                    look_for_thread = false;
+                }
+            }
+            memcopy_mem_mem(stacks[current_thread].stack_top,stack_main.stack_top,stack_main.size_of_just_stack,true);
+            memcopy_reg_mem(stacks[current_thread].reg_start,stack_main.reg_size,true);
         }
     }
 };
@@ -565,7 +665,7 @@ void my_assembler(string instruction_in, int &location,int &count){
             else {
                 current_assebler_memory[location].arg2 = is_label(m[3],location);
             }
-            if(debug_on) cout << m[4] << ")";   //register/label
+            if(debug_on) cout << m[3] << ")" << endl;   //register/label
         }
         count+=12;
     }
@@ -583,7 +683,7 @@ void my_assembler(string instruction_in, int &location,int &count){
         }
         if (m[2] != ""){
             if(debug_on) cout << " OP CODE: (";
-            if(debug_on) cout << m[2] << ")";   //oppcode
+            if(debug_on) cout << m[2] << ")" << endl;   //oppcode
             current_assebler_memory[location].opp_code = OPPS_DICTIONARY.get_code(m[2]); //convert the string to opp code
         }
         count+=12;
