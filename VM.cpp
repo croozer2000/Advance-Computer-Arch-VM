@@ -466,11 +466,22 @@ class my_assembly_VM {
                 }
                 break;
                 case 29: { //LCK
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    int mutex_value = VM_MEMORY[current_arg2];
+                    if(mutex_value == -1){
+                        VM_MEMORY[current_arg2] = current_thread;   //change mutex to hold id of current thread
+                    }
+                    else if(mutex_value != current_thread){
+                        VM_REGISTERS[8]-=12; // block a PC increment
+                    }
                 }
                 break;
                 case 30: { //ULK
-                    cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    // cout << "Function has not been programmed for: " << OPPS_DICTIONARY.get_opp_name(current_operation) << endl;
+                    int mutex_value = VM_MEMORY[current_arg2];
+                    if(mutex_value == current_thread){
+                        VM_MEMORY[current_arg2] = -1;       // unlock mutex
+                    }
                 }
                 break;
                 default: {
