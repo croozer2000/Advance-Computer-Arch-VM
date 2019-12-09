@@ -1,3 +1,4 @@
+mutexArry .INT -1
 ent .BYT 10 //return character
 spc .BYT 32 //space character
 comma .BYT 44 //comma character
@@ -118,6 +119,7 @@ TRP 1
 LDB R3 ent
 TRP 3
 
+LCK mutexArry
 LDR R1 cnt      //Store items to the array
 LDA R2 arrayThirty
 LDR R4 offset
@@ -131,7 +133,9 @@ ADD R4 R2
 STR R0 R4
 ADI R1 1
 STR R1 cnt      //update the cnt variable
+ULK mutexArry
 
+END             //MULTItrheading code
 JMP Return        //when creating multi threading replace JMP with a end
 
 fibonacci SUB R1 R1

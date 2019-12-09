@@ -218,7 +218,9 @@ class my_assembly_VM {
             current_arg1 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+4));
             current_arg2 = *(int*)(VM_MEMORY+(VM_REGISTERS[8]+8));
             if(debug_on) cout << OPPS_DICTIONARY.get_opp_name(current_operation) << " ARG 1: (" << current_arg1 << ") ARG 2: (" << current_arg2 << ")" << endl;
-
+            if(debug_on) {
+                    cout << "this is thread is " << current_thread << endl;
+            }
             VM_REGISTERS[8]+=12;
             switch (current_operation){
                 case 1: { //JMP
@@ -455,13 +457,15 @@ class my_assembly_VM {
                     if(current_thread == 0){
                         bool active_thread = false;
                         for(int i = 1; i < NUM_THREADS; i++){
-                            if(thread_states[i] != 1){
+                            if(thread_states[i] != -1){
                                 active_thread = true;
+                                if(debug_on) cout << "Main thread being blocked " << i << " = " << thread_states[i] << endl;
                             }
                         }
                         if(active_thread){
                             VM_REGISTERS[8]-=12;    //block thread by reversing PC counter increment
                         }
+
                     }
                 }
                 break;
