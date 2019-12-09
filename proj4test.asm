@@ -58,11 +58,10 @@ multiArray .INT 0
 .INT 0
 .INT 0
 .INT 0
-
-
+ 
 LDR R4 multiThrds
 SUB R6 R6
-main LDA R5 multiArray
+main2 LDA R5 multiArray
 TRP 2      //grab integer
 MOV R0 R3 
 SUB R3 R3
@@ -77,7 +76,7 @@ ADI R6 1        //cont is kept here
 MOV R7 R4
 SUB R7 R6
 BRZ R7 startMulti
-JMP main
+JMP main2
 
 startMulti SUB R4 R4
 multiLoop MOV R2 R6     // copy count over

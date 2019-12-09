@@ -53,10 +53,18 @@ arrayThirty .INT 0
 .INT 0
 .INT 0
 
+multiThrds .INT 4
+multiArray .INT 0
+.INT 0
+.INT 0
+.INT 0
+
 main TRP 2      //grab integer 
 MOV R0 R3       //reg zero is protected
 SUB R3 R3
 CMP R3 R0
+SUB R7 R7
+ADI R7 1
 BRZ R3 done
 
 ADI R10 -4      //function call code start - move stack pointer size of int
@@ -69,7 +77,6 @@ ADI R1 36       //caluclate return address
 STR R1 R11      //store the return address
 JMP fibMain     //function call code end - 
 JMP main
-
 
 fibMain MOV R3 R0
 ADI R10 -4      //Save the passed int to the stack
@@ -201,7 +208,8 @@ ADI R4 4
 doneloop MOV R3 R0
 CMP R3 R2           //check if cnt is greater than reg2 counter
 BGT R3 doneCont     //continue if cnt is greater than zero
-TRP 0      //end statement
+BGT R7 main2Start      //end statement
+TRP 0
 
 doneCont BRZ R2 noSpace //skip placing the first comma and space by checking reg2
 LDB R3 comma        //print a comma and a space
@@ -231,3 +239,44 @@ TRP 1
 ADI R0 -1           //increment counters
 ADI R2 1
 JMP doneloop
+
+main2Start LDB R3 ent
+TRP 3
+TRP 3
+SUB R0 R0
+STR R0 cnt
+LDR R4 multiThrds
+SUB R6 R6
+main2 LDA R5 multiArray
+TRP 2      //grab integer
+MOV R0 R3 
+SUB R3 R3
+CMP R3 R0
+BRZ R3 startMulti
+
+MOV R7 R6
+MUL R7 R4       //find offset
+ADD R5 R7
+STR R0 R5
+ADI R6 1        //cont is kept here
+MOV R7 R4
+SUB R7 R6
+BRZ R7 startMulti
+JMP main2
+
+startMulti SUB R4 R4
+multiLoop MOV R2 R6     // copy count over
+CMP R2 R4
+BRZ R2 multiCont
+LDA R5 multiArray
+LDR R7 multiThrds
+MUL R7 R4
+ADD R5 R7
+ADI R4 1
+LDR R0 R5
+RUN R1 fibMain
+JMP multiLoop
+
+multiCont BLK
+SUB R7 R7
+JMP done
